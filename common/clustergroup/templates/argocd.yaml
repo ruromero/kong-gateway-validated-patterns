@@ -40,6 +40,18 @@ spec:
             --set global.hubClusterDomain={{ .Values.global.hubClusterDomain }}
             --set global.localClusterDomain={{ coalesce .Values.global.localClusterDomain .Values.global.hubClusterDomain }}
             --post-renderer ./kustomize"]
+    - name: argocd-vault-plugin
+      allowConcurrency: true
+      discover:
+        find:
+          command: ["sh", "-c"]
+          args: ["find . -name '*.yaml' | xargs -I {} grep \"<path\\|avp\\.kubernetes\\.io\" {} | grep ."]
+      generate:
+        command:
+          - argocd-vault-plugin
+          - generate
+          - "."
+      lockRepo: false
   applicationSet:
     resources:
       limits:
@@ -77,6 +89,28 @@ spec:
       requests:
         cpu: 250m
         memory: 256Mi
+    initContainers:
+      - name: download-tools
+        image: registry.access.redhat.com/ubi8
+        env:
+          - name: AVP_VERSION
+            value: 1.11.0
+        command: [sh, -c]
+        args:
+          - >-
+            curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o argocd-vault-plugin &&
+            chmod +x argocd-vault-plugin &&
+            mv argocd-vault-plugin /custom-tools/
+        volumeMounts:
+          - mountPath: /custom-tools
+            name: custom-tools
+    volumes:
+      - name: custom-tools
+        emptyDir: {}
+    volumeMounts:
+      - name: custom-tools
+        subPath: argocd-vault-plugin
+        mountPath: /usr/local/bin/argocd-vault-plugin
   resourceExclusions: |
     - apiGroups:
       - tekton.dev
