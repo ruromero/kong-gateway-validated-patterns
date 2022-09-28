@@ -91,14 +91,14 @@ spec:
         memory: 256Mi
     initContainers:
       - name: download-tools
-        image: argoproj/argocd:latest
+        image: registry.redhat.io/openshift-gitops-1/argocd-rhel8@sha256:fda249dc1b7acdd0faa7005a1514d1af9a7609269482b6d1e01b4623d454f04f
         env:
           - name: AVP_VERSION
             value: 1.13.0
         command: [sh, -c]
         args:
           - >-
-            wget https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -O /custom-tools/argocd-vault-plugin &&
+            curl https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o /custom-tools/argocd-vault-plugin &&
             chmod +x /custom-tools/argocd-vault-plugin
         volumeMounts:
           - mountPath: /custom-tools
