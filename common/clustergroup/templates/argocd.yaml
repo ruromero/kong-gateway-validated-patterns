@@ -98,7 +98,7 @@ spec:
         command: [sh, -c]
         args:
           - >-
-            curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o /custom-tools/argocd-vault-plugin &&
+            wget https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -O /custom-tools/argocd-vault-plugin &&
             chmod +x /custom-tools/argocd-vault-plugin
         volumeMounts:
           - mountPath: /custom-tools
