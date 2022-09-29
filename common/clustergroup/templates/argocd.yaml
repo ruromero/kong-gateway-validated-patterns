@@ -54,6 +54,8 @@ spec:
             --post-renderer ./kustomize"]
 {{ if eq $.Values.global.secretsmanager "argocd-vault-plugin" }}          
     - name: argocd-vault-plugin-helm
+      allowConcurrency: true
+      lockRepo: false
       init:
         command: ["/bin/sh", "-c"]
         args: ["helm dependency build"]
