@@ -1,4 +1,16 @@
 {{- $namespace := cat $.Values.global.pattern $.Values.clusterGroup.name | replace " " "-" }}
+{{ if eq $.Values.global.secretsmanager "argocd-vault-plugin" }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.clusterGroup.name }}-gitops-argocd-server
+  namespace: {{ $namespace }}
+  annotations:
+    kubernetes.io/service-account.name: {{ .Values.clusterGroup.name }}-gitops-argocd-server
+type: kubernetes.io/service-account-token
+{{ end }}
+---
 apiVersion: argoproj.io/v1alpha1
 kind: ArgoCD
 metadata:
@@ -40,18 +52,12 @@ spec:
             --set global.hubClusterDomain={{ .Values.global.hubClusterDomain }}
             --set global.localClusterDomain={{ coalesce .Values.global.localClusterDomain .Values.global.hubClusterDomain }}
             --post-renderer ./kustomize"]
+{{ if eq $.Values.global.secretsmanager "argocd-vault-plugin" }}          
     - name: argocd-vault-plugin
-      allowConcurrency: true
-      discover:
-        find:
-          command: ["sh", "-c"]
-          args: ["find . -name '*.yaml' | xargs -I {} grep \"<path\\|avp\\.kubernetes\\.io\" {} | grep ."]
       generate:
-        command:
-          - argocd-vault-plugin
-          - generate
-          - "."
-      lockRepo: false
+        command: ["/bin/bash", "-c"]
+        args: ["argocd-vault-plugin", "generate", "./"]
+{{ end }}
   applicationSet:
     resources:
       limits:
@@ -89,6 +95,18 @@ spec:
       requests:
         cpu: 250m
         memory: 256Mi
+{{ if eq $.Values.global.secretsmanager "argocd-vault-plugin" }}
+    serviceaccount: {{ .Values.clusterGroup.name }}-gitops-argocd-server
+    mountsatoken: true
+    env:
+      - name: AVP_TYPE
+        value: vault
+      - name: AVP_AUTH_TYPE
+        value: k8s
+      - name: AVP_K8S_ROLE
+        value: {{ .Values.global.pattern }}-gitops-argocd-server
+      - name: VAULT_ADDR
+        value: http://{{ .Values.clusterGroup.applications.vault.name }}.{{ .Values.clusterGroup.applications.vault.namespace }}:8200
     initContainers:
       - name: download-tools
         image: registry.redhat.io/openshift-gitops-1/argocd-rhel8@sha256:fda249dc1b7acdd0faa7005a1514d1af9a7609269482b6d1e01b4623d454f04f
@@ -98,7 +116,7 @@ spec:
         command: [sh, -c]
         args:
           - >-
-            curl https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o /custom-tools/argocd-vault-plugin &&
+            curl https://github.com/IBM/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o /custom-tools/argocd-vault-plugin &&
             chmod +x /custom-tools/argocd-vault-plugin
         volumeMounts:
           - mountPath: /custom-tools
@@ -110,6 +128,7 @@ spec:
       - name: custom-tools
         subPath: argocd-vault-plugin
         mountPath: /usr/local/bin/argocd-vault-plugin
+{{ end }}        
   resourceExclusions: |
     - apiGroups:
       - tekton.dev

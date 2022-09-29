@@ -7,7 +7,6 @@ clusterGroup:
 
   namespaces:
   - vault
-  - golang-external-secrets
   - kong-clustering
 
   projects:
@@ -55,12 +54,6 @@ clusterGroup:
         value: true
       - name: server.ha.raft.tls
         value: false
-
-    golang-external-secrets:
-      name: golang-external-secrets
-      namespace: golang-external-secrets
-      project: hub
-      path: common/golang-external-secrets
 
     kong-cp:
       name: kong-cp
