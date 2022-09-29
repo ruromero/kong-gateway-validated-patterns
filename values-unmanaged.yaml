@@ -83,7 +83,7 @@ clusterGroup:
           - .spec.template.spec.containers[] | select(.name == "postgresql").image
           - .spec.triggers[].imageChangeParams.lastTriggeredImage
       plugin:
-        name: argocd-vault-plugin
+        name: argocd-vault-plugin-helm
     kong-dp:
       name: kong-dp
       namespace: kong
@@ -108,7 +108,7 @@ clusterGroup:
           - /spec/client/redirectUris
           - /spec/client/rootUrl
       plugin:
-        name: argocd-vault-plugin
+        name: argocd-vault-plugin-helm
     bookinfo:
       name: bookinfo
       namespace: bookinfo
