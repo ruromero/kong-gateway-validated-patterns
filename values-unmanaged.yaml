@@ -82,6 +82,8 @@ clusterGroup:
           jqPathExpressions:
           - .spec.template.spec.containers[] | select(.name == "postgresql").image
           - .spec.triggers[].imageChangeParams.lastTriggeredImage
+      plugin:
+        name: argocd-vault-plugin
     kong-dp:
       name: kong-dp
       namespace: kong
@@ -105,7 +107,8 @@ clusterGroup:
           jsonPointers:
           - /spec/client/redirectUris
           - /spec/client/rootUrl
-
+      plugin:
+        name: argocd-vault-plugin
     bookinfo:
       name: bookinfo
       namespace: bookinfo
