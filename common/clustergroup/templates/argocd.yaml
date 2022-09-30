@@ -143,10 +143,14 @@ spec:
     volumes:
       - name: custom-tools
         emptyDir: {}
+      - name: cache
+        emptyDir: {}
     volumeMounts:
       - name: custom-tools
         subPath: argocd-vault-plugin
         mountPath: /usr/local/bin/argocd-vault-plugin
+      - name: cache
+        mountPath: /.cache
 {{ end }}        
   resourceExclusions: |
     - apiGroups:
