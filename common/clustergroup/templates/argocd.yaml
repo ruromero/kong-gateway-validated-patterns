@@ -1,16 +1,16 @@
 {{- $namespace := cat $.Values.global.pattern $.Values.clusterGroup.name | replace " " "-" }}
-{{ if eq $.Values.global.secretsmanager "argocd-vault-plugin" }}
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ .Values.clusterGroup.name }}-gitops-argocd-server
-  namespace: {{ $namespace }}
-  annotations:
-    kubernetes.io/service-account.name: {{ .Values.clusterGroup.name }}-gitops-argocd-server
-type: kubernetes.io/service-account-token
-{{ end }}
----
+# {{ if eq $.Values.global.secretsmanager "argocd-vault-plugin" }}
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: {{ .Values.clusterGroup.name }}-gitops-argocd-server
+#   namespace: {{ $namespace }}
+#   annotations:
+#     kubernetes.io/service-account.name: {{ .Values.clusterGroup.name }}-gitops-argocd-server
+# type: kubernetes.io/service-account-token
+# {{ end }}
+# ---
 apiVersion: argoproj.io/v1alpha1
 kind: ArgoCD
 metadata:
@@ -56,9 +56,6 @@ spec:
     - name: argocd-vault-plugin-helm
       allowConcurrency: true
       lockRepo: false
-      # init:
-      #   command: ["/bin/sh", "-c"]
-      #   args: ["helm dependency build"]
       generate:
         command: ["/bin/bash", "-c"]
         args: ["helm template . --name-template ${ARGOCD_APP_NAME:0:52}
