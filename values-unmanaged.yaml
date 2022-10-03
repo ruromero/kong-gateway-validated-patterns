@@ -62,12 +62,14 @@ clusterGroup:
       project: hub
       path: common/golang-external-secrets
 
-    kong-cp:
-      name: kong-cp
+    kong:
+      name: "kong-{{ name }}"
       namespace: kong
-      project: controlplane
       path: charts/all/kong
-      clusterName: controlplane
+      clusterName: "{{ name }}"
+      generators:
+        - clusters: {}
+      project: "{{ name }}"
       syncPolicy:
         syncOptions:
           - CreateNamespace=true
@@ -89,29 +91,12 @@ clusterGroup:
           jqPathExpressions:
           - .spec.template.spec.containers[] | select(.name == "postgresql").image
           - .spec.triggers[].imageChangeParams.lastTriggeredImage
-    kong-dp:
-      name: kong-dp
-      namespace: kong
-      project: dataplane
-      path: charts/all/kong
-      clusterName: dataplane
-      syncPolicy:
-        syncOptions:
-          - CreateNamespace=true
-        automated:
-          selfHeal: true
-      extraValueFiles:
-       - /values-kong-dp.yaml
-      ignoreDifferences:
         - group: "apps"
           kind: "Deployment"
           jqPathExpressions:
           - .spec.template.spec.containers[] | select(.name == "proxy").env[] | select(.name == "KONG_CLUSTER_CONTROL_PLANE" or .name == "KONG_CLUSTER_TELEMETRY_ENDPOINT")
-        - group: keycloak.org
-          kind: "KeycloakClient"
-          jsonPointers:
-          - /spec/client/redirectUris
-          - /spec/client/rootUrl
+      extraValueFiles:
+       - /values-unmanaged-{{ name }}.yaml    
 
     bookinfo:
       name: bookinfo
